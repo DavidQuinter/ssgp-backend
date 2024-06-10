@@ -1,0 +1,530 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "mysql"
+  url      = env("DATABASE_URL")
+}
+
+model country {
+  id       Int        @id @default(autoincrement())
+  code     String?    @db.VarChar(3)
+  name     String?    @db.VarChar(255)
+  location location[]
+}
+
+model grade {
+  id                    Int                     @id @default(autoincrement())
+  name                  Int?
+  display_name          String?                 @db.VarChar(255)
+  description           String?                 @db.VarChar(255)
+  technical_information technical_information[]
+}
+
+model location {
+  id            Int             @id @default(autoincrement())
+  factory_name  String?         @db.VarChar(255)
+  adress        String?         @db.VarChar(255)
+  id_country    Int?
+  id_state      Int?
+  country       country?        @relation(fields: [id_country], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "FK_Location_CountryId")
+  state         state?          @relation(fields: [id_state], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "FK_Location_StateId")
+  user_location user_location[]
+
+  @@index([id_country], map: "FK_Location_CountryId")
+  @@index([id_state], map: "FK_Location_StateId")
+}
+
+model password_reset {
+  id      Int     @id @default(autoincrement())
+  user_id Int?
+  token   String? @db.VarChar(255)
+  user    user?   @relation(fields: [user_id], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "FK_PasswordReset_UserId")
+
+  @@index([user_id], map: "FK_PasswordReset_UserId")
+}
+
+model permissions {
+  id               Int                @id @default(autoincrement())
+  name             Int?
+  display_name     String?            @db.VarChar(255)
+  description      String?            @db.VarChar(255)
+  created_at       DateTime?          @db.DateTime(0)
+  updated_at       DateTime?          @db.DateTime(0)
+  permissions_role permissions_role[]
+}
+
+model permissions_role {
+  role_id        Int
+  permissions_id Int
+  permissions    permissions @relation(fields: [permissions_id], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "FK_PermissionsRole_PermissionsId")
+  role           role        @relation(fields: [role_id], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "FK_PermissionsRole_RoleId")
+
+  @@id([role_id, permissions_id])
+  @@index([permissions_id], map: "FK_PermissionsRole_PermissionsId")
+}
+
+model process_identifier {
+  id                    Int                     @id @default(autoincrement())
+  name                  String?                 @db.VarChar(255)
+  description           String?                 @db.VarChar(255)
+  technical_information technical_information[]
+}
+
+model product {
+  id                    Int                    @id @default(autoincrement())
+  name                  String                 @db.VarChar(255)
+  description           String                 @db.VarChar(255)
+  part                  String?                @db.VarChar(255)
+  element_10            element_10[]
+  element_11            element_11[]
+  element_12            element_12[]
+  element_13            element_13[]
+  element_14            element_14[]
+  element_15            element_15[]
+  element_16            element_16[]
+  element_17            element_17[]
+  element_18_1          element_18_1[]
+  element_18_2          element_18_2[]
+  element_1_1           element_1_1[]
+  element_1_2           element_1_2[]
+  element_1_3           element_1_3[]
+  element_2             element_2[]
+  element_3             element_3[]
+  element_4             element_4[]
+  element_5             element_5[]
+  element_6             element_6[]
+  element_7             element_7[]
+  element_8             element_8[]
+  element_9             element_9[]
+  technical_information technical_information?
+  vendor_product        vendor_product[]
+}
+
+model provider {
+  id              Int               @id @unique(map: "id") @default(autoincrement())
+  name            String            @db.VarChar(255)
+  logo            String?           @db.VarChar(255)
+  vendor_provider vendor_provider[]
+}
+
+model role {
+  id               Int                @id @default(autoincrement())
+  display_name     String?            @db.VarChar(255)
+  name             Int?
+  description      String?            @db.VarChar(255)
+  created_at       DateTime?          @db.DateTime(0)
+  updated_at       DateTime?          @db.DateTime(0)
+  permissions_role permissions_role[]
+  role_user        role_user[]
+}
+
+model role_user {
+  user_id Int
+  role_id Int
+  role    role @relation(fields: [role_id], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "FK_RoleUser_RoleId")
+  user    user @relation(fields: [user_id], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "FK_RoleUser_UserId")
+
+  @@id([user_id, role_id])
+  @@index([role_id], map: "FK_RoleUser_RoleId")
+}
+
+model state {
+  id       Int        @id @default(autoincrement())
+  code     String?    @db.VarChar(5)
+  name     String?    @db.VarChar(255)
+  location location[]
+}
+
+model technical_information {
+  id                 Int                 @id
+  id_product         Int?                @unique(map: "id_product")
+  id_grade           Int?
+  id_process         Int?
+  grade              grade?              @relation(fields: [id_grade], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "fk_technical_information_grade")
+  process_identifier process_identifier? @relation(fields: [id_process], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "fk_technical_information_process_identifier")
+  product            product?            @relation(fields: [id_product], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "fk_technical_information_product_id")
+
+  @@index([id_grade], map: "fk_technical_information_grade")
+  @@index([id_process], map: "fk_technical_information_process_identifier")
+}
+
+model user {
+  id               Int                @id @default(autoincrement())
+  user_name        String?            @db.VarChar(255)
+  email            String?            @db.VarChar(255)
+  password         String?            @db.VarChar(255)
+  active           Int?               @db.TinyInt
+  created_at       DateTime?          @db.DateTime(0)
+  updated_at       DateTime?          @db.DateTime(0)
+  password_reset   password_reset[]
+  role_user        role_user[]
+  user_information user_information[]
+  user_location    user_location[]
+  vendor_register  vendor_register[]
+  vendor_review    vendor_review[]
+}
+
+model user_information {
+  id        Int    @id @default(autoincrement())
+  user_id   Int
+  name      String @db.VarChar(255)
+  last_name String @db.VarChar(255)
+  title     String @db.VarChar(255)
+  user      user   @relation(fields: [user_id], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "FK_UserInformation_UserId")
+
+  @@index([user_id], map: "FK_UserInformation_UserId")
+}
+
+model user_location {
+  id_user     Int
+  id_location Int
+  location    location @relation(fields: [id_location], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "FK_UserLocation_LocationId")
+  user        user     @relation(fields: [id_user], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "FK_UserLocation_UserId")
+
+  @@id([id_user, id_location])
+  @@index([id_location], map: "FK_UserLocation_LocationId")
+}
+
+model vendor {
+  id              Int               @id @default(autoincrement())
+  name            String?           @db.VarChar(50)
+  last_name       String?           @db.VarChar(255)
+  mail            String?           @db.VarChar(50)
+  phone           String?           @db.VarChar(20)
+  active          Int?              @db.TinyInt
+  created_at      DateTime?         @db.DateTime(0)
+  note            String?           @db.VarChar(255)
+  vendor_product  vendor_product[]
+  vendor_provider vendor_provider[]
+  vendor_register vendor_register[]
+  vendor_review   vendor_review[]
+}
+
+model vendor_backup {
+  id         Int       @id @default(autoincrement())
+  name       String?   @db.VarChar(50)
+  last_name  String?   @db.VarChar(255)
+  mail       String?   @db.VarChar(50)
+  phone      String?   @db.VarChar(20)
+  active     Int?      @db.TinyInt
+  created_at DateTime? @db.DateTime(0)
+  note       String?   @db.VarChar(255)
+}
+
+model vendor_product {
+  id_vendor  Int
+  id_product Int
+  vendor     vendor  @relation(fields: [id_vendor], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "FK_VendorProduct_VendorId")
+  product    product @relation(fields: [id_product], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "fk_vendor_product_product_id")
+
+  @@id([id_vendor, id_product])
+  @@index([id_product], map: "fk_vendor_product_product_id")
+}
+
+model vendor_provider {
+  id_provider Int
+  id_vendor   Int
+  provider    provider @relation(fields: [id_provider], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "vendor_provider_ibfk_1")
+  vendor      vendor   @relation(fields: [id_vendor], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "vendor_provider_ibfk_2")
+
+  @@id([id_provider, id_vendor])
+  @@index([id_vendor], map: "id_vendor")
+}
+
+model vendor_register {
+  id_user   Int
+  id_vendor Int
+  user      user   @relation(fields: [id_user], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "FK_VendorRegister_UserId")
+  vendor    vendor @relation(fields: [id_vendor], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "FK_VendorRegister_VendorId")
+
+  @@id([id_user, id_vendor])
+  @@index([id_vendor], map: "FK_VendorRegister_VendorId")
+}
+
+model vendor_review {
+  id         Int     @id
+  created_by Int?
+  id_vendor  Int?
+  score      Int?
+  remark     String? @db.VarChar(255)
+  user       user?   @relation(fields: [created_by], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "FK_VendorReview_UserId")
+  vendor     vendor? @relation(fields: [id_vendor], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "FK_VendorReview_VendorId")
+
+  @@index([created_by], map: "FK_VendorReview_UserId")
+  @@index([id_vendor], map: "FK_VendorReview_VendorId")
+}
+
+model element_10 {
+  id          Int       @id @default(autoincrement())
+  name        String    @db.VarChar(255)
+  file_name   String?   @db.VarChar(255)
+  file_path   String?   @db.VarChar(255)
+  created_at  DateTime? @db.DateTime(0)
+  next_update DateTime? @db.DateTime(0)
+  id_product  Int?
+  product     product?  @relation(fields: [id_product], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "FK_element_10_product")
+
+  @@index([id_product], map: "FK_element_10_product")
+}
+
+model element_11 {
+  id          Int       @id @default(autoincrement())
+  name        String    @db.VarChar(255)
+  file_name   String?   @db.VarChar(255)
+  file_path   String?   @db.VarChar(255)
+  created_at  DateTime? @db.DateTime(0)
+  next_update DateTime? @db.DateTime(0)
+  id_product  Int?
+  product     product?  @relation(fields: [id_product], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "FK_element_11_product")
+
+  @@index([id_product], map: "FK_element_11_product")
+}
+
+model element_12 {
+  id          Int       @id @default(autoincrement())
+  name        String    @db.VarChar(255)
+  file_name   String?   @db.VarChar(255)
+  file_path   String?   @db.VarChar(255)
+  created_at  DateTime? @db.DateTime(0)
+  next_update DateTime? @db.DateTime(0)
+  id_product  Int?
+  product     product?  @relation(fields: [id_product], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "FK_element_12_product")
+
+  @@index([id_product], map: "FK_element_12_product")
+}
+
+model element_13 {
+  id          Int       @id @default(autoincrement())
+  name        String    @db.VarChar(255)
+  file_name   String?   @db.VarChar(255)
+  file_path   String?   @db.VarChar(255)
+  created_at  DateTime? @db.DateTime(0)
+  next_update DateTime? @db.DateTime(0)
+  id_product  Int?
+  product     product?  @relation(fields: [id_product], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "FK_element_13_product")
+
+  @@index([id_product], map: "FK_element_13_product")
+}
+
+model element_14 {
+  id          Int       @id @default(autoincrement())
+  name        String    @db.VarChar(255)
+  file_name   String?   @db.VarChar(255)
+  file_path   String?   @db.VarChar(255)
+  created_at  DateTime? @db.DateTime(0)
+  next_update DateTime? @db.DateTime(0)
+  id_product  Int?
+  product     product?  @relation(fields: [id_product], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "FK_element_14_product")
+
+  @@index([id_product], map: "FK_element_14_product")
+}
+
+model element_15 {
+  id          Int       @id @default(autoincrement())
+  name        String    @db.VarChar(255)
+  file_name   String?   @db.VarChar(255)
+  file_path   String?   @db.VarChar(255)
+  created_at  DateTime? @db.DateTime(0)
+  next_update DateTime? @db.DateTime(0)
+  id_product  Int?
+  product     product?  @relation(fields: [id_product], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "FK_element_15_product")
+
+  @@index([id_product], map: "FK_element_15_product")
+}
+
+model element_16 {
+  id          Int       @id @default(autoincrement())
+  name        String    @db.VarChar(255)
+  file_name   String?   @db.VarChar(255)
+  file_path   String?   @db.VarChar(255)
+  created_at  DateTime? @db.DateTime(0)
+  next_update DateTime? @db.DateTime(0)
+  id_product  Int?
+  product     product?  @relation(fields: [id_product], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "FK_element_16_product")
+
+  @@index([id_product], map: "FK_element_16_product")
+}
+
+model element_17 {
+  id          Int       @id @default(autoincrement())
+  name        String    @db.VarChar(255)
+  file_name   String?   @db.VarChar(255)
+  file_path   String?   @db.VarChar(255)
+  created_at  DateTime? @db.DateTime(0)
+  next_update DateTime? @db.DateTime(0)
+  id_product  Int?
+  product     product?  @relation(fields: [id_product], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "FK_element_17_product")
+
+  @@index([id_product], map: "FK_element_17_product")
+}
+
+model element_18_1 {
+  id          Int       @id @default(autoincrement())
+  name        String    @db.VarChar(255)
+  file_name   String?   @db.VarChar(255)
+  file_path   String?   @db.VarChar(255)
+  created_at  DateTime? @db.DateTime(0)
+  next_update DateTime? @db.DateTime(0)
+  id_product  Int?
+  product     product?  @relation(fields: [id_product], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "FK_element_18.1_product")
+
+  @@index([id_product], map: "FK_element_18.1_product")
+}
+
+model element_18_2 {
+  id          Int       @id @default(autoincrement())
+  name        String    @db.VarChar(255)
+  file_name   String?   @db.VarChar(255)
+  file_path   String?   @db.VarChar(255)
+  created_at  DateTime? @db.DateTime(0)
+  next_update DateTime? @db.DateTime(0)
+  id_product  Int?
+  product     product?  @relation(fields: [id_product], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "FK_element_18.2_product")
+
+  @@index([id_product], map: "FK_element_18.2_product")
+}
+
+model element_1_1 {
+  id          Int       @id @default(autoincrement())
+  name        String    @db.VarChar(255)
+  file_name   String?   @db.VarChar(255)
+  file_path   String?   @db.VarChar(255)
+  created_at  DateTime? @db.DateTime(0)
+  next_update DateTime? @db.DateTime(0)
+  id_product  Int?
+  product     product?  @relation(fields: [id_product], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "FK_element_1.1_product")
+
+  @@index([id_product], map: "FK_element_1.1_product")
+}
+
+model element_1_2 {
+  id          Int       @id @default(autoincrement())
+  name        String    @db.VarChar(255)
+  file_name   String?   @db.VarChar(255)
+  file_path   String?   @db.VarChar(255)
+  created_at  DateTime? @db.DateTime(0)
+  next_update DateTime? @db.DateTime(0)
+  id_product  Int?
+  product     product?  @relation(fields: [id_product], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "FK_element_1.2_product")
+
+  @@index([id_product], map: "FK_element_1.2_product")
+}
+
+model element_1_3 {
+  id          Int       @id @default(autoincrement())
+  name        String    @db.VarChar(255)
+  file_name   String?   @db.VarChar(255)
+  file_path   String?   @db.VarChar(255)
+  created_at  DateTime? @db.DateTime(0)
+  next_update DateTime? @db.DateTime(0)
+  id_product  Int?
+  product     product?  @relation(fields: [id_product], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "FK_element_1.3_product")
+
+  @@index([id_product], map: "FK_element_1.3_product")
+}
+
+model element_2 {
+  id          Int       @id @default(autoincrement())
+  name        String    @db.VarChar(255)
+  file_name   String?   @db.VarChar(255)
+  file_path   String?   @db.VarChar(255)
+  created_at  DateTime? @db.DateTime(0)
+  next_update DateTime? @db.DateTime(0)
+  id_product  Int?
+  product     product?  @relation(fields: [id_product], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "FK_element_2_product")
+
+  @@index([id_product], map: "FK_element_2_product")
+}
+
+model element_3 {
+  id          Int       @id @default(autoincrement())
+  name        String    @db.VarChar(255)
+  file_name   String?   @db.VarChar(255)
+  file_path   String?   @db.VarChar(255)
+  created_at  DateTime? @db.DateTime(0)
+  next_update DateTime? @db.DateTime(0)
+  id_product  Int?
+  product     product?  @relation(fields: [id_product], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "FK_element_3_product")
+
+  @@index([id_product], map: "FK_element_3_product")
+}
+
+model element_4 {
+  id          Int       @id @default(autoincrement())
+  name        String    @db.VarChar(255)
+  file_name   String?   @db.VarChar(255)
+  file_path   String?   @db.VarChar(255)
+  created_at  DateTime? @db.DateTime(0)
+  next_update DateTime? @db.DateTime(0)
+  id_product  Int?
+  product     product?  @relation(fields: [id_product], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "FK_element_4_product")
+
+  @@index([id_product], map: "FK_element_4_product")
+}
+
+model element_5 {
+  id          Int       @id @default(autoincrement())
+  name        String    @db.VarChar(255)
+  file_name   String?   @db.VarChar(255)
+  file_path   String?   @db.VarChar(255)
+  created_at  DateTime? @db.DateTime(0)
+  next_update DateTime? @db.DateTime(0)
+  id_product  Int?
+  product     product?  @relation(fields: [id_product], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "FK_element_5_product")
+
+  @@index([id_product], map: "FK_element_5_product")
+}
+
+model element_6 {
+  id          Int       @id @default(autoincrement())
+  name        String    @db.VarChar(255)
+  file_name   String?   @db.VarChar(255)
+  file_path   String?   @db.VarChar(255)
+  created_at  DateTime? @db.DateTime(0)
+  next_update DateTime? @db.DateTime(0)
+  id_product  Int?
+  product     product?  @relation(fields: [id_product], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "FK_element_6_product")
+
+  @@index([id_product], map: "FK_element_6_product")
+}
+
+model element_7 {
+  id          Int       @id @default(autoincrement())
+  name        String    @db.VarChar(255)
+  file_name   String?   @db.VarChar(255)
+  file_path   String?   @db.VarChar(255)
+  created_at  DateTime? @db.DateTime(0)
+  next_update DateTime? @db.DateTime(0)
+  id_product  Int?
+  product     product?  @relation(fields: [id_product], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "FK_element_7_product")
+
+  @@index([id_product], map: "FK_element_7_product")
+}
+
+model element_8 {
+  id          Int       @id @default(autoincrement())
+  name        String    @db.VarChar(255)
+  file_name   String?   @db.VarChar(255)
+  file_path   String?   @db.VarChar(255)
+  created_at  DateTime? @db.DateTime(0)
+  next_update DateTime? @db.DateTime(0)
+  id_product  Int?
+  product     product?  @relation(fields: [id_product], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "FK_element_8_product")
+
+  @@index([id_product], map: "FK_element_8_product")
+}
+
+model element_9 {
+  id          Int       @id @default(autoincrement())
+  name        String    @db.VarChar(255)
+  file_name   String?   @db.VarChar(255)
+  file_path   String?   @db.VarChar(255)
+  created_at  DateTime? @db.DateTime(0)
+  next_update DateTime? @db.DateTime(0)
+  id_product  Int?
+  product     product?  @relation(fields: [id_product], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "FK_element_9_product")
+
+  @@index([id_product], map: "FK_element_9_product")
+}
